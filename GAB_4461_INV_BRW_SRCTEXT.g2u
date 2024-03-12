@@ -1,0 +1,254 @@
+Program.Sub.ScreenSU.Start
+Gui.F_Main..create
+Gui.F_Main..caption("Inventory Part Browser Search Text")
+Gui.F_Main..size(15675,7155)
+Gui.F_Main..minx(0)
+Gui.F_Main..miny(0)
+Gui.F_Main..position(0,0)
+Gui.F_Main..event(UnLoad,f_main_unload)
+Gui.F_Main..forecolor(0)
+Gui.F_Main..BackColor(-2147483633)
+Gui.F_Main..minbutton(False)
+Gui.F_Main..mousepointer(0)
+Gui.F_Main.GsGCText.Create(GsGridControl)
+Gui.F_Main.GsGCText.Size(15465,5925)
+Gui.F_Main.GsGCText.Position(0,480)
+Gui.F_Main.GsGCText.Event(RowCellClick,GsGCText_RowCellClick)
+Gui.F_Main.GsGCText.Event(ColumnPositionChanged,GsGCText_ColumnPositionChanged)
+Gui.F_Main.cmdSelect.Create(Button)
+Gui.F_Main.cmdSelect.Size(1080,375)
+Gui.F_Main.cmdSelect.Position(270,6450)
+Gui.F_Main.cmdSelect.Caption("Select")
+Gui.F_Main.cmdSelect.Event(Click,cmdSelect_Click)
+Gui.F_Main.txtSearch.Create(TextBox,"",True,15180,300,0,120,105,True,0,"Arial",8,-2147483643,1)
+Gui.F_Main.txtSearch.Event(KeyPressEnter,txtSearch_KeyPressEnter)
+Gui.F_Main.lblLoading.Create(Label,"Loading....",True,1935,525,0,6720,3090,True,0,"Arial",16,-2147483633,0)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+	V.Global.sPart.Declare(String,"")
+	V.Global.sLoc.Declare(String,"")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+	V.Local.sIcon.Declare
+
+	F.Intrinsic.String.Build("{0}\Gss2.ico",V.Caller.GasDir,V.Local.sIcon)
+	Gui.F_Main..Icon(V.Local.sIcon)
+	F.ODBC.Connection!con.OpenCompanyConnection(500)
+'	Gui.F_Main.lblLoading.Visible(True)
+'	Gui.F_Main.cmdSearch.Enabled(False)
+'	F.Data.DataTable.CreateFromSQL("dtText","con","SELECT A.PART,A.LOCATION,A.PRODUCT_LINE,A.QTY_ONHAND,(A.QTY_ONORDER_PO + A.QTY_ONORDER_WO) AS QTY_ONORDER,A.QTY_REQUIRED,(A.QTY_ONHAND + A.QTY_ONORDER_PO + A.QTY_ONORDER_WO - A.QTY_REQUIRED) AS QTY_NET,A.DESCRIPTION,B.TEXT FROM V_INVENTORY_MSTR A LEFT OUTER JOIN V_INV_EXTRA_TEXT B ON A.PART = B.PART ORDER BY PART,LOCATION;",True)
+'	F.Data.DataView.Create("dtText","dvText")
+'	F.Intrinsic.Control.CallSub(loadgv)
+'	Gui.F_Main.cmdSearch.Enabled(True)
+	Gui.F_Main.GsGCText.Anchor(15)
+	Gui.F_Main.txtSearch.Anchor(15)
+	Gui.F_Main.lblLoading.Anchor(15)
+	Gui.F_Main.cmdSelect.Anchor(6)
+	Gui.F_Main..Show
+Program.Sub.Main.End
+
+Program.Sub.f_main_unload.Start
+	V.Passed.777777.Set(1)
+	F.ODBC.Connection!Con.Close
+	F.Intrinsic.Control.End 
+Program.Sub.f_main_unload.End
+
+Program.Sub.LoadGV.Start
+	V.Local.sRegistry.Declare
+
+	Gui.F_Main.GsGCText.AddGridviewFromDataview("gvText","dtText","dvText")
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","MultiSelect",True)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","AllowSort",True)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","AllowFilter",True)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","Editable",False)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","OptionsDetailShowDetailTabs",False)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","OptionsViewShowGroupPanel",False)
+	Gui.F_Main.GsGCText.SetGridViewProperty("gvText","EnableAppearanceOddRow",True)
+
+	F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,0,5,"",V.Local.sRegistry)
+	F.Intrinsic.Control.If(V.Local.sRegistry,<>,"")
+		'Call Sub to Set Visible and VisibleIndex
+		F.Intrinsic.Control.CallSub(setusersettings,"GV","GVTEXT")
+	F.Intrinsic.Control.Else
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,0,False,"PART",True,0,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,1,False,"LOCATION",True,1,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,2,False,"PRODUCT_LINE",True,2,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,3,False,"QTY_ONHAND",True,3,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,4,False,"QTY_ONORDER",True,4,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,5,False,"QTY_REQUIRED",True,5,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,6,False,"QTY_NET",True,6,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,7,False,"DESCRIPTION",True,7,-999.0,1/1/1980,12:00:00 AM)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,8,False,"TEXT",True,8,-999.0,1/1/1980,12:00:00 AM)
+	F.Intrinsic.Control.EndIf
+
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PART","Caption","Part")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","LOCATION","Caption","Loc")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PRODUCT_LINE","Caption","PL")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONHAND","Caption","Qty On Hand")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONORDER","Caption","Qty On Order")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_REQUIRED","Caption","Qty Required")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_NET","Caption","Net")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","DESCRIPTION","Caption","Description")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","TEXT","Caption","Text")
+
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PART","MinWidth","120")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","LOCATION","MinWidth","25")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PRODUCT_LINE","MinWidth","25")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONHAND","MinWidth","85")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONORDER","MinWidth","85")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_REQUIRED","MinWidth","85")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_NET","MinWidth","85")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","DESCRIPTION","MinWidth","300")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","TEXT","MinWidth","300")
+
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","LOCATION","HeaderHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PRODUCT_LINE","HeaderHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONHAND","HeaderHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONORDER","HeaderHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_REQUIRED","HeaderHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_NET","HeaderHAlignment","Center")
+
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","LOCATION","CellHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","PRODUCT_LINE","CellHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONHAND","CellHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_ONORDER","CellHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_REQUIRED","CellHAlignment","Center")
+	Gui.F_Main.GsGCText.SetColumnProperty("gvText","QTY_NET","CellHAlignment","Center")
+
+	Gui.F_Main.GsGCText.MainView("gvText")
+Program.Sub.LoadGV.End
+
+Program.Sub.GsGCText_RowCellClick.Start
+	F.Intrinsic.Control.SelectCase(V.Args.Column)
+		F.Intrinsic.Control.CaseAny("PART","LOC")
+			Gui.F_Main.GsGCText.GetCellValueByColumnName("gvText","PART",V.Args.RowIndex,V.Global.sPart)
+			Gui.F_Main.GsGCText.GetCellValueByColumnName("gvText","LOCATION",V.Args.RowIndex,V.Global.sLoc)
+			F.Intrinsic.Control.If(V.Args.Clicks,=,2)
+				F.Intrinsic.Control.CallSub(cmdselect_click)
+			F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndSelect
+Program.Sub.GsGCText_RowCellClick.End
+
+Program.Sub.GsGCText_ColumnPositionChanged.Start
+	V.Local.bVisible.Declare
+	V.Local.iBegIndex.Declare
+	V.Local.iEndIndex.Declare
+	V.Local.iCnt.Declare
+	V.Local.iVal.Declare
+	V.Local.sVal.Declare
+	V.Local.bVal.Declare
+
+	F.Intrinsic.Control.If(V.Args.ColumnVisibleIndex,=,-1)
+		V.Local.bVisible.Set(False)
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,V.Args.GridViewName,4461,V.Args.ColumnIndex,False,V.Args.ColumnName,V.Local.bVisible,V.Args.ColumnVisibleIndex,-999.0,1/1/1980,12:00:00 AM)
+	F.Intrinsic.Control.Else
+		V.Local.bVisible.Set(True)
+		V.Local.iBegIndex.Set(V.Args.ColumnVisibleIndex)
+		F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Args.ColumnIndex,1,"",V.Local.iEndIndex)
+		F.Intrinsic.Control.If(V.Local.iBegIndex,<,V.Local.iEndIndex)
+			'Move Column from Right to Left
+			F.Intrinsic.Control.For(V.Local.iCnt,0,8,1)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,0,"",V.Local.bVal)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,1,"",V.Local.iVal)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,5,"",V.Local.sVal)
+				F.Intrinsic.Control.If(V.Local.iVal,>=,V.Local.iBegIndex)
+					F.Intrinsic.Control.AndIf(V.Local.iVal,<=,V.Local.iEndIndex)
+						F.Intrinsic.Control.If(V.Local.iVal,<>,-1)
+							F.Intrinsic.Math.Add(V.Local.iVal,1,V.Local.iVal)
+						F.Intrinsic.Control.EndIf
+						F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,V.Args.GridViewName,4461,V.Local.iCnt,False,V.Local.sVal,V.Local.bVal,V.Local.iVal,-999.0,1/1/1980,12:00:00 AM)
+				F.Intrinsic.Control.EndIf	
+			F.Intrinsic.Control.Next(V.Local.iCnt)
+		F.Intrinsic.Control.Else
+			'Move Column from Left to Right
+			F.Intrinsic.Control.For(V.Local.iCnt,0,8,1)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,0,"",V.Local.bVal)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,1,"",V.Local.iVal)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,5,"",V.Local.sVal)
+				F.Intrinsic.Control.If(V.Local.iVal,>=,V.Local.iEndIndex)
+					F.Intrinsic.Control.AndIf(V.Local.iVal,<=,V.Local.iBegIndex)
+						F.Intrinsic.Control.If(V.Local.iVal,<>,-1)
+							F.Intrinsic.Math.Sub(V.Local.iVal,1,V.Local.iVal)
+						F.Intrinsic.Control.EndIf
+						F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,V.Args.GridViewName,4461,V.Local.iCnt,False,V.Local.sVal,V.Local.bVal,V.Local.iVal,-999.0,1/1/1980,12:00:00 AM)
+				F.Intrinsic.Control.EndIf	
+			F.Intrinsic.Control.Next(V.Local.iCnt)
+		F.Intrinsic.Control.EndIf
+
+		'Set VisibleIndex and LastIndex last
+		F.Global.Registry.AddValue(V.Caller.User,V.Caller.CompanyCode,V.Args.GridViewName,4461,V.Args.ColumnIndex,False,V.Args.ColumnName,V.Local.bVisible,V.Args.ColumnVisibleIndex,-999.0,1/1/1980,12:00:00 AM)
+	F.Intrinsic.Control.EndIf
+Program.Sub.GsGCText_ColumnPositionChanged.End
+
+Program.Sub.cmdSelect_Click.Start
+	V.Passed.009001.Set(V.Global.sPart)
+	V.Passed.009002.Set(V.Global.sLoc)
+	F.Intrinsic.Control.CallSub(f_main_unload)
+Program.Sub.cmdSelect_Click.End
+
+Program.Sub.txtSearch_KeyPressEnter.Start
+	V.Local.sSearch.Declare
+	V.Local.sFilter.Declare
+	V.Local.iCnt.Declare
+
+	Gui.F_Main.lblLoading.Visible(True)
+	Gui.F_Main.cmdSearch.Enabled(False)
+	Gui.F_Main.GsGCText.Visible(False)
+
+	F.Intrinsic.Control.If(V.DataTable.dtText.Exists,=,False)
+		F.Data.DataTable.CreateFromSQL("dtText","con","SELECT A.PART,A.LOCATION,A.PRODUCT_LINE,A.QTY_ONHAND,(A.QTY_ONORDER_PO + A.QTY_ONORDER_WO) AS QTY_ONORDER,A.QTY_REQUIRED,(A.QTY_ONHAND + A.QTY_ONORDER_PO + A.QTY_ONORDER_WO - A.QTY_REQUIRED) AS QTY_NET,A.DESCRIPTION,B.TEXT FROM V_INVENTORY_MSTR A LEFT OUTER JOIN V_INV_EXTRA_TEXT B ON A.PART = B.PART ORDER BY PART,LOCATION;",True)
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.Control.If(V.DataView.dtText!dvText.Exists)
+		F.Data.DataView.Close("dtText","dvText")
+	F.Intrinsic.Control.EndIf
+
+	F.Intrinsic.String.Split(V.Screen.F_Main!txtSearch.Text,",",V.Local.sSearch)
+	F.Intrinsic.Control.For(V.Local.iCnt,0,V.Local.sSearch.UBound,1)
+		F.Intrinsic.Control.If(V.Local.iCnt,=,0)
+			F.Intrinsic.String.Build("(PART LIKE '%{0}%' OR DESCRIPTION LIKE '%{0}%' OR TEXT LIKE '%{0}%')",V.Local.sSearch(V.Local.iCnt),V.Local.sFilter)
+		F.Intrinsic.Control.Else
+			F.Intrinsic.String.Build("{0} AND (PART LIKE '%{1}%' OR DESCRIPTION LIKE '%{1}%' OR TEXT LIKE '%{1}%')",V.Local.sFilter,V.Local.sSearch(V.Local.iCnt),V.Local.sFilter)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.iCnt)
+
+	F.Data.DataView.Create("dtText","dvText",22,V.Local.sFilter,"")
+	F.Intrinsic.Control.CallSub(loadgv)
+	Gui.F_Main.GsGCText.Visible(True)
+	Gui.F_Main.lblLoading.Visible(False)
+	Gui.F_Main.cmdSearch.Enabled(True)
+Program.Sub.txtSearch_KeyPressEnter.End
+
+Program.Sub.SetUserSettings.Start
+	V.Local.iCnt.Declare
+	V.Local.sColumn.Declare
+	V.Local.bVisible.Declare
+	V.Local.iVisibleIndex.Declare
+
+	'0 - Boolean
+	'1 - Long
+	'2 - Float
+	'3 - Date
+	'4 - Time
+	'5 - String
+
+	F.Intrinsic.Control.SelectCase(V.Args.GV)
+		F.Intrinsic.Control.Case("GVTEXT")
+			F.Intrinsic.Control.For(V.Local.iCnt,0,8,1)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,5,"",V.Local.sColumn)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,0,"",V.Local.bVisible)
+				F.Global.Registry.ReadValue(V.Caller.User,V.Caller.CompanyCode,"GVTEXT",4461,V.Local.iCnt,1,"",V.Local.iVisibleIndex)
+				Gui.F_Main.GsGCText.SetColumnProperty("gvText",V.Local.sColumn,"Visible",V.Local.bVisible)
+				F.Intrinsic.Control.If(V.Local.iVisibleIndex,<>,-1)
+					Gui.F_Main.GsGCText.SetColumnProperty("gvText",V.Local.sColumn,"VisibleIndex",V.Local.iVisibleIndex)
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Next(V.Local.iCnt)
+	F.Intrinsic.Control.EndSelect
+Program.Sub.SetUserSettings.End
+
+Program.Sub.Comments.Start
+${$0$}$GAB_INV_BRW_SRCTEXT$}$RRC$}$02/11/2014$}$False
+Program.Sub.Comments.End
+
